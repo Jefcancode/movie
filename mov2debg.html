@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Now Playing Movies</title>
+    <style>
+        .movie {
+            margin: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+        .movie img {
+            width: 200px;
+            height: 300px;
+        }
+        #movieDetails {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Now Playing Movies</h1>
+    <div id="movieList"></div>
+    <div id="movieDetails"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_KEY = '948b1cb609c3a4f19c721b623cc07716';
+            const BASE_URL = 'https://api.themoviedb.org/3';
+            const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+
+            const movieList = document.getElementById('movieList');
+            const movieDetails = document.getElementById('movieDetails');
+
+            // Fetch list of now playing movies
+            axios.get(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}`)
+                .then(response => {
+                    const movies = response.data.results;
+                    movies.forEach(movie => {
+                        const title = movie.title;
+                        const posterPath = `${IMAGE_BASE_URL}${movie.poster_path}`;
+
+                        const movieElement = document.createElement('div');
+                        movieElement.classList.add('movie');
+                        movieElement.innerHTML = `
+                            <h2 class="movie-title" data-id="${movie.id}">${title}</h2>
+                            <img src="${posterPath}" alt="${title}">
+                        `;
+
+                        movieList.appendChild(movieElement);
+                    });
+
+                    // Add click event listeners to movie titles
+                    const movieTitles = document.querySelectorAll('.movie-title');
+                    movieTitles.forEach(title => {
+                        title.addEventListener('click', (event) => {
+                            const movieId = event.target.getAttribute('data-id');
+                            console.log('Movie ID:', movieId);  // Debug log
+                            fetchMovieDetails(movieId);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+
+            // Function to fetch movie details by movie ID
+            function fetchMovieDetails(movieId) {
+                axios.get(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}`)
+                    .then(response => {
+                        const movie = response.data;
+                        console.log('Movie Details:', movie);  // Debug log
+                        movieDetails.innerHTML = `
+                            <h2>${movie.title}</h2>
+                            <img src="${IMAGE_BASE_URL}${movie.poster_path}" alt="${movie.title}">
+                            <p>${movie.overview}</p>
+                            <p>Release Date: ${movie.release_date}</p>
+                            <p>Rating: ${movie.vote_average}</p>
+                        `;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching movie details:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
